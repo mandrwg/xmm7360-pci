@@ -39,9 +39,9 @@ echo ""
 if [[ "$1" = "setup" ]]; then
   pip3 install pyroute2 configargparse --user
 
-  unlink /usr/local/bin/lte || true
-  ln -s $SCRIPT_DIR/lte.sh /usr/local/bin/lte
-  chmod 755 /usr/local/bin/lte
+  unlink /usr/bin/lte || true
+  ln -s $SCRIPT_DIR/lte.sh /usr/bin/lte
+  chmod 755 /usr/bin/lte
 
   make
   make load
@@ -51,7 +51,7 @@ fi
 if [[ "$1" = "remove" ]]; then
   ip link set wwan0 down
   rmmod xmm7360 || true
-  unlink /usr/local/bin/lte || true
+  unlink /usr/bin/lte || true
 fi
 
 # down param
@@ -64,6 +64,12 @@ fi
 if [[ "$1" = "up" ]]; then
   echo "bringing wwan0 up!" 
 
+  /sbin/rmmod xmm7360
+  /sbin/insmod xmm7360.ko
+
   python3 $SCRIPT_DIR/../rpc/open_xdatachannel.py
   ip link set wwan0 up
+
+  echo "nameserver 1.1.1.1" | tee -a /etc/resolv.conf
+  echo "nameserver 8.8.8.8" | tee -a /etc/resolv.conf
 fi
